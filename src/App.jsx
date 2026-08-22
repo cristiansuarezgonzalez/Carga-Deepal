@@ -148,7 +148,7 @@ export default function App() {
             <div className="display" style={{ fontSize: 21, fontWeight: 700, letterSpacing: '-0.01em' }}>Deepal S07 <span style={{ color: '#8A9499', fontWeight: 500 }}>REEV</span></div>
             <div style={{ fontSize: 12, color: '#8A9499', marginTop: 2 }}>Control de energía y combustible</div>
           </div>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: saving ? '#F2A65A' : '#2FD7C4', boxShadow: saving ? '0 0 8px #F2A65A' : '0 0 8px #2FD7C4', transition: 'all 0.3s' }} title={saving ? 'Guardando…' : 'Guardado'} />
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: saving ? '#F2A65A' : '#2FD7C4', boxShadow: saving ? '0 0 8px #F2A65A' : '0 0 8px #2FD7C4', transition: 'all 0.3s' }} title="Estado de sincronización" />
         </div>
 
         {/* View toggle + period selector */}
