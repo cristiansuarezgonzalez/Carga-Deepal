@@ -6,5 +6,5 @@ import react from '@vitejs/plugin-react';
 // https://tu-usuario.github.io/NOMBRE-DEL-REPO/
 export default defineConfig({
   plugins: [react()],
-  base: '/deepal-tracker/'
+  base: '/Carga-Deepal/'
 });
