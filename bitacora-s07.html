@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Bitácora S07" />
+<title>Bitácora S07</title>
+<style>
+  :root {
+    --bg: #14171C;
+    --card: #1D2129;
+    --border: #2A2F3A;
+    --elec: #2DD4BF;
+    --fuel: #F59E0B;
+    --text: #F3F4F6;
+    --muted: #6B7280;
+    --danger: #EF4444;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 20px 16px 110px; }
+  h1 { font-size: 20px; font-weight: 700; margin: 0; font-family: 'SF Mono', 'JetBrains Mono', monospace; letter-spacing: -0.02em; }
+  .sub { font-size: 12px; color: var(--muted); margin: 2px 0 20px; }
+  .tag { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .toggle { display: flex; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 16px; }
+  .toggle button { flex: 1; padding: 10px; border: none; background: transparent; color: var(--muted); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .toggle button.active { background: #2A2F3A; color: #fff; }
+  .nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .nav button { background: var(--card); border: none; color: var(--text); width: 36px; height: 36px; border-radius: 10px; font-size: 16px; }
+  .nav .label { font-family: monospace; font-size: 14px; font-weight: 500; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; margin-bottom: 16px; }
+  .total { font-size: 26px; font-weight: 700; font-family: monospace; margin: 6px 0 12px; }
+  .bar { height: 12px; border-radius: 999px; overflow: hidden; display: flex; background: #0F1115; margin-bottom: 12px; }
+  .bar-elec { background: var(--elec); height: 100%; }
+  .bar-fuel { background: var(--fuel); height: 100%; }
+  .legend { display: flex; justify-content: space-between; font-size: 12px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+  .chart { display: flex; align-items: flex-end; justify-content: space-between; gap: 4px; height: 128px; }
+  .chart .col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .chart .stack { width: 100%; border-radius: 3px; overflow: hidden; display: flex; flex-direction: column-reverse; background: #20242C; }
+  .chart .mlabel { font-size: 9px; color: var(--muted); margin-top: 4px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .quickbtn { border-radius: 14px; padding: 14px 8px; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 1px solid; background: transparent; font-size: 12px; font-weight: 600; }
+  .quickbtn.elec { border-color: rgba(45,212,191,0.35); background: rgba(45,212,191,0.08); color: var(--elec); }
+  .quickbtn.fuel { border-color: rgba(245,158,11,0.35); background: rgba(245,158,11,0.08); color: var(--fuel); }
+  .hist-row { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+  .hist-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 15px; }
+  .hist-body { flex: 1; min-width: 0; }
+  .hist-top { display: flex; justify-content: space-between; font-size: 13px; font-family: monospace; font-weight: 600; }
+  .hist-bottom { font-size: 11px; color: var(--muted); }
+  .hist-actions { display: flex; gap: 4px; }
+  .hist-actions button { background: none; border: none; color: var(--muted); font-size: 15px; padding: 6px; border-radius: 6px; }
+  .empty { text-align: center; color: var(--muted); font-size: 13px; padding: 32px 0; border: 1px dashed var(--border); border-radius: 12px; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+  .modal { width: 100%; max-width: 480px; background: #1A1D24; border-radius: 20px 20px 0 0; padding: 20px 20px 32px; padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 14px; font-weight: 600; }
+  .modal-head button { background: none; border: none; color: var(--muted); font-size: 18px; }
+  .field { background: #14171C; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
+  .field.error { border-color: var(--danger); }
+  .field label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 2px; }
+  .field input { width: 100%; background: transparent; border: none; outline: none; color: var(--text); font-size: 15px; }
+  .field-error { font-size: 11px; color: var(--danger); margin-top: 4px; }
+  .save-btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: 700; font-size: 14px; margin-top: 6px; color: #0F1115; }
+  .banner { display: flex; gap: 8px; align-items: center; font-size: 12px; color: #F87171; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 8px 12px; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const MONTHS_FULL = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const ELEC = "#2DD4BF", FUEL = "#F59E0B";
+
+function loadEntries() {
+  try { return JSON.parse(localStorage.getItem("s07_entries") || "[]"); }
+  catch (e) { return []; }
+}
+function saveEntries(list) {
+  try { localStorage.setItem("s07_entries", JSON.stringify(list)); return true; }
+  catch (e) { return false; }
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+function fmtCOP(n) { return new Intl.NumberFormat("es-CO", {style:"currency", currency:"COP", maximumFractionDigits:0}).format(n||0); }
+function fmtNum(n, d=1) { return new Intl.NumberFormat("es-CO", {maximumFractionDigits:d}).format(n||0); }
+function todayISO() { const d = new Date(); const off = d.getTimezoneOffset(); return new Date(d.getTime()-off*60000).toISOString().slice(0,10); }
+
+let state = {
+  entries: loadEntries(),
+  view: "mensual",
+  cursor: (() => { const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() }; })(),
+  formOpen: null,
+  editingId: null,
+  saveError: false,
+};
+
+function persist() {
+  const ok = saveEntries(state.entries);
+  state.saveError = !ok;
+}
+
+function addEntry(entry) { state.entries.push({...entry, id: uid()}); persist(); render(); }
+function updateEntry(id, patch) { state.entries = state.entries.map(e => e.id===id ? {...e,...patch} : e); persist(); render(); }
+function deleteEntry(id) { state.entries = state.entries.filter(e => e.id !== id); persist(); render(); }
+
+function filteredEntries() {
+  if (state.view === "mensual") {
+    return state.entries.filter(e => {
+      const d = new Date(e.date+"T00:00:00");
+      return d.getFullYear()===state.cursor.year && d.getMonth()===state.cursor.month;
+    });
+  }
+  return state.entries.filter(e => new Date(e.date+"T00:00:00").getFullYear()===state.cursor.year);
+}
+function yearEntries() {
+  return state.entries.filter(e => new Date(e.date+"T00:00:00").getFullYear()===state.cursor.year);
+}
+
+function render() {
+  const active = filteredEntries();
+  let elec=0, fuel=0, elecKwh=0, fuelGal=0;
+  active.forEach(e => { if(e.type==="electric"){elec+=e.cost; elecKwh+=e.quantity;} else {fuel+=e.cost; fuelGal+=e.quantity;} });
+  const total = elec+fuel;
+  const splitPct = total>0 ? (elec/total)*100 : 50;
+
+  const yEntries = yearEntries();
+  const monthly = MONTHS.map(()=>({elec:0,fuel:0}));
+  yEntries.forEach(e => {
+    const m = new Date(e.date+"T00:00:00").getMonth();
+    if (e.type==="electric") monthly[m].elec += e.cost; else monthly[m].fuel += e.cost;
+  });
+  const maxMonth = Math.max(1, ...monthly.map(m=>m.elec+m.fuel));
+
+  const sorted = [...active].sort((a,b)=> a.date<b.date?1:-1);
+
+  let html = `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;">
+      <h1>Bitácora S07</h1>
+      <span class="tag">Deepal REEV</span>
+    </div>
+    <div class="sub">Registro de carga eléctrica y combustible</div>
+    ${state.saveError ? `<div class="banner">⚠ No se pudo guardar el último cambio. Revisa el espacio de almacenamiento de Safari.</div>` : ""}
+    <div class="toggle">
+      <button onclick="setView('mensual')" class="${state.view==='mensual'?'active':''}">Mensual</button>
+      <button onclick="setView('anual')" class="${state.view==='anual'?'active':''}">Anual</button>
+    </div>
+    <div class="nav">
+      <button onclick="goPrev()">‹</button>
+      <span class="label">${state.view==='mensual' ? MONTHS_FULL[state.cursor.month]+' '+state.cursor.year : state.cursor.year}</span>
+      <button onclick="goNext()">›</button>
+    </div>
+    <div class="card">
+      <div class="tag">Gasto total del periodo</div>
+      <div class="total">${fmtCOP(total)}</div>
+      <div class="bar">
+        <div class="bar-elec" style="width:${splitPct}%"></div>
+        <div class="bar-fuel" style="width:${100-splitPct}%"></div>
+      </div>
+      <div class="legend">
+        <span><span class="dot" style="background:${ELEC}"></span>${fmtCOP(elec)} <span style="color:var(--muted)">· ${fmtNum(elecKwh)} kWh</span></span>
+        <span><span style="color:var(--muted)">${fmtNum(fuelGal,2)} gal ·</span> ${fmtCOP(fuel)} <span class="dot" style="background:${FUEL}"></span></span>
+      </div>
+    </div>
+  `;
+
+  if (state.view === "anual") {
+    html += `<div class="card"><div class="tag" style="margin-bottom:10px;">Gasto mensual ${state.cursor.year}</div><div class="chart">`;
+    monthly.forEach((m,i) => {
+      const t = m.elec+m.fuel;
+      const h = t>0 ? Math.max(4,(t/maxMonth)*100) : 2;
+      const elecH = t>0 ? (m.elec/t)*100 : 0;
+      html += `<div class="col">
+        <div class="stack" style="height:${h}%;">
+          ${t>0 ? `<div style="height:${elecH}%;background:${ELEC}"></div><div style="height:${100-elecH}%;background:${FUEL}"></div>` : ""}
+        </div>
+        <div class="mlabel">${m}</div>
+      </div>`.replace("${m}", MONTHS[i]);
+    });
+    html += `</div></div>`;
+  }
+
+  html += `
+    <div class="grid2">
+      <button class="quickbtn elec" onclick="openForm('electric')">⚡<br>Carga eléctrica</button>
+      <button class="quickbtn fuel" onclick="openForm('fuel')">⛽<br>Combustible</button>
+    </div>
+    <div class="tag" style="margin-bottom:8px;">Historial</div>
+  `;
+
+  if (sorted.length === 0) {
+    html += `<div class="empty">Sin registros en este periodo.</div>`;
+  } else {
+    sorted.forEach(e => {
+      const isElec = e.type === "electric";
+      const color = isElec ? ELEC : FUEL;
+      html += `
+        <div class="hist-row">
+          <div class="hist-icon" style="background:${color}1A;color:${color}">${isElec?'⚡':'⛽'}</div>
+          <div class="hist-body">
+            <div class="hist-top"><span>${fmtCOP(e.cost)}</span><span style="color:var(--muted);font-weight:400;">${e.date}</span></div>
+            <div class="hist-bottom">${isElec ? fmtNum(e.quantity)+' kWh' : fmtNum(e.quantity,2)+' gal'}${e.odometer ? ' · '+fmtNum(e.odometer,0)+' km' : ''}</div>
+          </div>
+          <div class="hist-actions">
+            <button onclick="openForm('${e.type}','${e.id}')">✎</button>
+            <button onclick="confirmDelete('${e.id}', this)">🗑</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  if (state.formOpen) {
+    html += renderForm();
+  }
+
+  document.getElementById("app").innerHTML = html;
+}
+
+function renderForm() {
+  const isElec = state.formOpen === "electric";
+  const color = isElec ? ELEC : FUEL;
+  const initial = state.editingId ? state.entries.find(e=>e.id===state.editingId) : null;
+  const errs = window._formErrors || {};
+  const touched = window._formTouched || false;
+  const vDate = window._formDate ?? (initial?.date || todayISO());
+  const vQty = window._formQty ?? (initial?.quantity?.toString() || "");
+  const vCost = window._formCost ?? (initial?.cost?.toString() || "");
+  const vOdo = window._formOdo ?? (initial?.odometer?.toString() || "");
+
+  return `
+  <div class="modal-bg" onclick="closeForm(event)">
+    <div class="modal" onclick="event.stopPropagation()" style="border-top:2px solid ${color}">
+      <div class="modal-head">
+        <span>${color}</span>
+        <span>${isElec?'⚡':'⛽'} &nbsp;${initial ? 'Editar' : 'Nuevo'} ${isElec ? 'registro eléctrico' : 'registro de combustible'}</span>
+        <button onclick="closeForm(event)">✕</button>
+      </div>
+      <div class="field ${touched && errs.date ? 'error':''}">
+        <label>Fecha</label>
+        <input type="date" value="${vDate}" oninput="window._formDate=this.value">
+        ${touched && errs.date ? `<div class="field-error">${errs.date}</div>` : ""}
+      </div>
+      <div class="field ${touched && errs.quantity ? 'error':''}">
+        <label>${isElec ? 'Energía cargada (kWh)' : 'Combustible cargado (galones)'}</label>
+        <input type="number" inputmode="decimal" placeholder="${isElec?'ej. 24.5':'ej. 8.2'}" value="${vQty}" oninput="window._formQty=this.value">
+        ${touched && errs.quantity ? `<div class="field-error">${errs.quantity}</div>` : ""}
+      </div>
+      <div class="field ${touched && errs.cost ? 'error':''}">
+        <label>Costo (COP)</label>
+        <input type="number" inputmode="decimal" placeholder="ej. 45000" value="${vCost}" oninput="window._formCost=this.value">
+        ${touched && errs.cost ? `<div class="field-error">${errs.cost}</div>` : ""}
+      </div>
+      <div class="field ${touched && errs.odometer ? 'error':''}">
+        <label>Odómetro (km) · opcional</label>
+        <input type="number" inputmode="decimal" placeholder="ej. 12500" value="${vOdo}" oninput="window._formOdo=this.value">
+        ${touched && errs.odometer ? `<div class="field-error">${errs.odometer}</div>` : ""}
+      </div>
+      <button class="save-btn" style="background:${color}" onclick="submitForm()">Guardar registro</button>
+    </div>
+  </div>
+  `;
+}
+
+function setView(v) { state.view = v; render(); }
+function goPrev() {
+  if (state.view==="mensual") {
+    if (state.cursor.month===0) { state.cursor.year--; state.cursor.month=11; } else state.cursor.month--;
+  } else state.cursor.year--;
+  render();
+}
+function goNext() {
+  if (state.view==="mensual") {
+    if (state.cursor.month===11) { state.cursor.year++; state.cursor.month=0; } else state.cursor.month++;
+  } else state.cursor.year++;
+  render();
+}
+function openForm(type, id) {
+  state.formOpen = type;
+  state.editingId = id || null;
+  window._formErrors = {}; window._formTouched = false;
+  window._formDate = undefined; window._formQty = undefined; window._formCost = undefined; window._formOdo = undefined;
+  render();
+}
+function closeForm(e) {
+  state.formOpen = null; state.editingId = null;
+  render();
+}
+function submitForm() {
+  const isElec = state.formOpen === "electric";
+  const date = window._formDate ?? (state.editingId ? state.entries.find(e=>e.id===state.editingId).date : todayISO());
+  const qty = parseFloat(window._formQty ?? (state.editingId ? state.entries.find(e=>e.id===state.editingId).quantity : ""));
+  const cost = parseFloat(window._formCost ?? (state.editingId ? state.entries.find(e=>e.id===state.editingId).cost : ""));
+  const odoRaw = window._formOdo ?? (state.editingId ? state.entries.find(e=>e.id===state.editingId).odometer : "");
+  const odo = odoRaw === "" || odoRaw == null ? null : parseFloat(odoRaw);
+
+  const errs = {};
+  if (!date) errs.date = "Selecciona una fecha.";
+  if (!qty || isNaN(qty) || qty<=0) errs.quantity = isElec ? "Ingresa los kWh cargados (mayor a 0)." : "Ingresa los galones cargados (mayor a 0).";
+  if (!cost || isNaN(cost) || cost<=0) errs.cost = "Ingresa el costo en pesos (mayor a 0).";
+  if (odoRaw !== "" && odoRaw != null && (isNaN(odo) || odo<0)) errs.odometer = "El odómetro debe ser un número válido.";
+
+  window._formErrors = errs;
+  window._formTouched = true;
+  if (Object.keys(errs).length > 0) { render(); return; }
+
+  const data = { date, quantity: qty, cost, odometer: odo };
+  if (state.editingId) updateEntry(state.editingId, data);
+  else addEntry({ type: state.formOpen, ...data });
+  state.formOpen = null; state.editingId = null;
+}
+function confirmDelete(id, btn) {
+  if (btn.dataset.confirm === "1") { deleteEntry(id); }
+  else {
+    btn.dataset.confirm = "1";
+    btn.style.color = "#EF4444";
+    setTimeout(() => { if (btn.dataset) btn.dataset.confirm = "0"; }, 2500);
+  }
+}
+
+render();
+</script>
+</body>
+</html>
