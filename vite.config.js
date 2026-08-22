@@ -1,9 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// IMPORTANTE: cambia "deepal-tracker" por el nombre EXACTO de tu repositorio
-// de GitHub si es distinto. Debe coincidir con la URL:
-// https://tu-usuario.github.io/NOMBRE-DEL-REPO/
+// El base debe coincidir EXACTAMENTE (mayúsculas incluidas) con el nombre
+// del repositorio de GitHub: https://cristiansuarezgonzalez.github.io/Carga-Deepal/
 export default defineConfig({
   plugins: [react()],
   base: '/Carga-Deepal/'
